@@ -1,0 +1,50 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: scans
+    // Document ID: auto-generated
+    // Fields:
+    //   - userId: string (required) - UID of the owner
+    //   - imageUrl: string (required) - Base64 or URL of the image
+    //   - summary: string (required) - AI summary
+    //   - rights: list (required) - List of 3 strings
+    //   - action: string (required) - Next step
+    //   - createdAt: timestamp (required) - Creation time
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidScan(data) {
+      return data.userId is string &&
+             data.imageUrl is string && data.imageUrl.size() < 2000000 && // Limit size for base64
+             data.summary is string && data.summary.size() < 5000 &&
+             data.rights is list && data.rights.size() == 3 &&
+             data.action is string && data.action.size() < 2000 &&
+             data.createdAt is timestamp;
+    }
+
+    match /scans/{scanId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && 
+                      request.resource.data.userId == request.auth.uid &&
+                      isValidScan(request.resource.data);
+      allow update, delete: if false; // Scans are immutable for now
+    }
+    
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+  }
+}

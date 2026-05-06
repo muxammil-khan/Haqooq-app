@@ -1,0 +1,50 @@
+{
+  "entities": {
+    "Scan": {
+      "title": "Scan",
+      "description": "A record of a document scan and its analysis.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The unique identifier for the scan."
+        },
+        "userId": {
+          "type": "string",
+          "description": "The UID of the user who performed the scan."
+        },
+        "imageUrl": {
+          "type": "string",
+          "description": "The URL or base64 data of the scanned document image."
+        },
+        "summary": {
+          "type": "string",
+          "description": "The AI-generated summary of the document."
+        },
+        "rights": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The 3 legal rights/options identified by AI."
+        },
+        "action": {
+          "type": "string",
+          "description": "The recommended next action step."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The timestamp when the scan was created."
+        }
+      },
+      "required": ["userId", "imageUrl", "summary", "rights", "action", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/scans/{scanId}": {
+      "schema": "Scan",
+      "description": "Collection of document scans."
+    }
+  }
+}
